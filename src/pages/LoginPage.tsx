@@ -83,6 +83,12 @@ const LoginPage = () => {
         <p className="text-muted-foreground text-[10px] text-center max-w-[240px] animate-fade-up leading-relaxed" style={{ animationDelay: "0.35s" }}>
           {t.auth.terms}
         </p>
+
+        {/* ILAI Services branding */}
+        <div className="animate-fade-up flex flex-col items-center gap-1 mt-2" style={{ animationDelay: "0.4s" }}>
+          <p className="text-muted-foreground/60 text-[9px] tracking-widest uppercase">Powered by</p>
+          <p className="text-muted-foreground text-xs font-semibold tracking-wide">ILAI Services</p>
+        </div>
       </div>
     </div>
   );
