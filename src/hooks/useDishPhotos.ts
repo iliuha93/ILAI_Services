@@ -1,14 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-export interface DishPhotoRecord {
-  dish_id: string;
-  photo_url: string;
-  source: "upload" | "ai_generated";
-  created_at: string;
-  updated_at: string;
-}
-
 export type DishPhotoMap = Map<string, string>;
 
 interface UseDishPhotosResult {
@@ -21,47 +13,22 @@ interface UseDishPhotosResult {
 
 export function useDishPhotos(): UseDishPhotosResult {
   const [photoMap, setPhotoMap] = useState<DishPhotoMap>(new Map());
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const fetchPhotos = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from("dish_photos")
-        .select("dish_id, photo_url");
-
-      if (error) throw error;
-
-      const map: DishPhotoMap = new Map(
-        (data ?? []).map((row) => [row.dish_id, row.photo_url])
-      );
-      setPhotoMap(map);
-    } catch (err) {
-      console.error("[useDishPhotos] fetch error:", err);
-    } finally {
-      setLoading(false);
-    }
+    // dish_photos table not yet created — return empty map
+    setPhotoMap(new Map());
   };
 
   const upsertPhoto = async (
     dishId: string,
     photoUrl: string,
-    source: "upload" | "ai_generated"
+    _source: "upload" | "ai_generated"
   ) => {
-    const { error } = await supabase.from("dish_photos").upsert(
-      { dish_id: dishId, photo_url: photoUrl, source },
-      { onConflict: "dish_id" }
-    );
-    if (error) throw error;
     setPhotoMap((prev) => new Map(prev).set(dishId, photoUrl));
   };
 
   const deletePhoto = async (dishId: string) => {
-    const { error } = await supabase
-      .from("dish_photos")
-      .delete()
-      .eq("dish_id", dishId);
-    if (error) throw error;
     setPhotoMap((prev) => {
       const next = new Map(prev);
       next.delete(dishId);
