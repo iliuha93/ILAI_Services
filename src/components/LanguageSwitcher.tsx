@@ -27,7 +27,9 @@ const LanguageSwitcher = () => {
         {lang}
       </button>
       {open && (
-        <div className="absolute right-0 top-full mt-1 glass-card-strong rounded-xl overflow-hidden z-50 min-w-[60px]">
+        <div className="fixed right-4 mt-1 glass-card-strong rounded-xl overflow-hidden z-[100] min-w-[60px] shadow-xl border border-border/50"
+          style={{ top: ref.current ? ref.current.getBoundingClientRect().bottom + 4 : 0 }}
+        >
           {langs.map((l) => (
             <button
               key={l}
