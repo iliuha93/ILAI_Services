@@ -7,7 +7,7 @@ import { useDishPhotos } from "@/hooks/useDishPhotos";
 import BottomTabBar from "@/components/BottomTabBar";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 
-const categories = ["all", "appetizers", "salads", "soups", "mains", "grill", "desserts", "drinks"];
+const categories = ["all", "appetizers", "salads", "soups", "mains", "grill", "desserts", "drinks", "kids", "sides"];
 
 const getDishName = (d: Dish, lang: string) => lang === "RO" ? d.nameRo : lang === "EN" ? d.nameEn : d.name;
 const getDishDesc = (d: Dish, lang: string) => lang === "RO" ? d.descriptionRo : lang === "EN" ? d.descriptionEn : d.description;

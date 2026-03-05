@@ -2,38 +2,38 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/i18n/LanguageContext";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
-import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
 import { useToast } from "@/hooks/use-toast";
 
 const LoginPage = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const { toast } = useToast();
-  const [loading, setLoading] = useState<"google" | "facebook" | null>(null);
-
-  const redirectTo = `${window.location.origin}/auth/callback`;
+  const [loading, setLoading] = useState<"google" | "apple" | null>(null);
 
   const handleGoogleLogin = async () => {
     setLoading("google");
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo },
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.origin,
     });
-    if (error) {
-      toast({ title: "Ошибка входа", description: error.message, variant: "destructive" });
+    if (result?.error) {
+      toast({ title: "Ошибка входа", description: String(result.error), variant: "destructive" });
       setLoading(null);
+    } else if (!result?.redirected) {
+      navigate("/chat", { replace: true });
     }
   };
 
-  const handleFacebookLogin = async () => {
-    setLoading("facebook");
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "facebook",
-      options: { redirectTo },
+  const handleAppleLogin = async () => {
+    setLoading("apple");
+    const result = await lovable.auth.signInWithOAuth("apple", {
+      redirect_uri: window.location.origin,
     });
-    if (error) {
-      toast({ title: "Ошибка входа", description: error.message, variant: "destructive" });
+    if (result?.error) {
+      toast({ title: "Ошибка входа", description: String(result.error), variant: "destructive" });
       setLoading(null);
+    } else if (!result?.redirected) {
+      navigate("/chat", { replace: true });
     }
   };
 
@@ -44,12 +44,6 @@ const LoginPage = () => {
       <div className="ambient-orb w-72 h-72 bg-primary top-[-5%] left-[-10%]" />
       <div className="ambient-orb w-96 h-96 bg-primary bottom-[-15%] right-[-15%]" />
       <div className="ambient-orb w-48 h-48 bg-destructive top-[60%] left-[10%] opacity-[0.06]" />
-
-      {/* ILAI Services branding — top center */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-0.5">
-        <p className="text-muted-foreground/60 text-[9px] tracking-widest uppercase">Powered by</p>
-        <p className="text-muted-foreground text-xs font-semibold tracking-wide">ILAI Services</p>
-      </div>
 
       {/* Language switcher */}
       <div className="absolute top-4 right-4 z-20">
@@ -85,6 +79,7 @@ const LoginPage = () => {
         </div>
 
         <div className="w-full flex flex-col gap-3 animate-fade-up" style={{ animationDelay: "0.2s" }}>
+          {/* Google */}
           <button
             onClick={handleGoogleLogin}
             disabled={loading !== null}
@@ -101,19 +96,20 @@ const LoginPage = () => {
             </div>
           </button>
 
+          {/* Apple */}
           <button
-            onClick={handleFacebookLogin}
+            onClick={handleAppleLogin}
             disabled={loading !== null}
             className="group w-full flex items-center gap-3 rounded-2xl glass-card-strong px-5 py-4 text-sm font-medium text-foreground transition-all hover:border-primary/30 active:scale-[0.98] hover:shadow-lg hover:shadow-primary/5 disabled:opacity-60 disabled:pointer-events-none"
           >
             <div className="w-10 h-10 rounded-xl bg-card flex items-center justify-center border border-border group-hover:border-primary/20 transition-colors">
-              {loading === "facebook" ? <Spinner /> : <FacebookIcon />}
+              {loading === "apple" ? <Spinner /> : <AppleIcon />}
             </div>
             <div className="text-left">
               <span className="block text-foreground text-sm font-medium">
-                {loading === "facebook" ? "Подключаемся..." : t.auth.facebook_signin}
+                {loading === "apple" ? "Подключаемся..." : (t.auth as any).apple_signin || "Войти через Apple"}
               </span>
-              <span className="block text-muted-foreground text-[10px]">{t.auth.facebook_desc}</span>
+              <span className="block text-muted-foreground text-[10px]">{(t.auth as any).apple_desc || "Быстрый и безопасный вход"}</span>
             </div>
           </button>
 
@@ -133,6 +129,11 @@ const LoginPage = () => {
           {t.auth.terms}
         </p>
 
+        {/* ILAI Services branding */}
+        <div className="animate-fade-up flex flex-col items-center gap-0.5" style={{ animationDelay: "0.4s" }}>
+          <p className="text-muted-foreground/60 text-[9px] tracking-widest uppercase">Powered by</p>
+          <p className="text-muted-foreground text-xs font-semibold tracking-wide">ILAI Services</p>
+        </div>
       </div>
     </div>
   );
@@ -154,9 +155,9 @@ const GoogleIcon = () => (
   </svg>
 );
 
-const FacebookIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="#1877F2">
-    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+const AppleIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.52-3.23 0-1.44.62-2.2.44-3.06-.4C3.12 15.55 3.89 8.65 8.9 8.35c1.27.07 2.15.73 2.9.78.95-.19 1.86-.84 2.89-.76 1.39.12 2.42.72 3.08 1.83-2.83 1.7-2.16 5.42.38 6.46-.53 1.4-1.22 2.78-2.1 3.62zM12.03 8.26C11.88 5.8 13.88 3.82 16.2 3.63c.34 2.79-2.52 4.88-4.17 4.63z" />
   </svg>
 );
 
