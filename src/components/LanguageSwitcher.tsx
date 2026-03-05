@@ -2,7 +2,7 @@ import { Globe } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { useState, useRef, useEffect } from "react";
 
-const langs = ["RU", "RO", "EN"] as const;
+const langs = ["DE", "EN", "RU", "RO"] as const;
 
 const LanguageSwitcher = () => {
   const { lang, setLang } = useLanguage();
