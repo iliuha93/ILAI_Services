@@ -59,7 +59,7 @@ const LoginPage = () => {
           <img
             src="/Liechtensteinhaus_Logo.png"
             alt="Liechtensteinhaus"
-            className="w-28 h-28 object-contain drop-shadow-xl"
+            className="w-28 h-28 rounded-full object-cover drop-shadow-xl border-2 border-primary/30"
           />
           <div className="text-center space-y-1.5">
             <h1 className="text-4xl font-bold gold-text tracking-tight" style={{ fontFamily: "var(--font-display)" }}>

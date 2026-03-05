@@ -1,0 +1,119 @@
+{
+  "auth": {
+    "welcome": "Willkommen",
+    "subtitle": "Ihr persönlicher KI-Restaurant-Assistent",
+    "google_signin": "Mit Google anmelden",
+    "google_desc": "Schnell und sicher",
+    "apple_signin": "Mit Apple anmelden",
+    "apple_desc": "Schnell und sicher",
+    "guest_continue": "Als Gast fortfahren",
+    "terms": "Mit der Anmeldung stimmen Sie den Nutzungsbedingungen und der Datenschutzrichtlinie zu"
+  },
+  "chat": {
+    "welcome": "Willkommen im Liechtensteinhaus! 🏔️\n\nIch bin Ihr persönlicher Assistent. Wie kann ich helfen?\n\n• Speisekarte ansehen\n• Über Gerichte erfahren\n• Bestellung aufgeben",
+    "placeholder": "Nachricht schreiben...",
+    "voice_message": "🎤 Sprachnachricht",
+    "processing": "Ihre Anfrage wird bearbeitet...",
+    "typing": "Schreibt...",
+    "voice_received": "Sprachnachricht erhalten. Wird verarbeitet...",
+    "default_reply": "Danke für Ihre Frage! Unser Assistent antwortet gleich. 😊"
+  },
+  "live": {
+    "title": "Echtzeit-Modus",
+    "heading": "Sprachassistent",
+    "description": "Tippen Sie auf das Mikrofon und sprechen Sie — der Assistent antwortet sofort",
+    "listening": "Höre zu... Tippen zum Stoppen",
+    "tap_to_start": "Tippen zum Starten",
+    "speaking": "Spreche...",
+    "ai_assistant": "KI-Assistent",
+    "transcription": "Transkription",
+    "waiting": "Warte auf Sprache..."
+  },
+  "menu": {
+    "title": "Speisekarte",
+    "search": "Speisekarte durchsuchen...",
+    "all": "Alle",
+    "appetizers": "Vorspeisen",
+    "salads": "Salate",
+    "soups": "Suppen",
+    "mains": "Hauptgerichte",
+    "grill": "Grill",
+    "desserts": "Desserts",
+    "drinks": "Getränke",
+    "kids": "Kindergerichte",
+    "sides": "Beilagen",
+    "hit": "Beliebt",
+    "new": "Neu",
+    "chef": "Empfehlung",
+    "add_to_order": "Zur Bestellung"
+  },
+  "dish": {
+    "description": "Beschreibung",
+    "ingredients": "Zutaten",
+    "allergens": "Allergene",
+    "recommendations": "Dazu bestellt",
+    "prep_time": "Min",
+    "add_to_order": "Zur Bestellung"
+  },
+  "cart": {
+    "title": "Ihre Bestellung",
+    "table": "Tisch",
+    "subtotal": "Zwischensumme",
+    "service": "Service",
+    "total": "Gesamt",
+    "checkout": "Bestellung aufgeben",
+    "empty": "Warenkorb ist leer",
+    "empty_hint": "Fügen Sie Gerichte aus der Speisekarte hinzu",
+    "go_to_menu": "Zur Speisekarte",
+    "comment": "Wünsche zur Bestellung hinzufügen..."
+  },
+  "order": {
+    "confirmed": "Bestellung bestätigt!",
+    "number": "Bestellnummer",
+    "table": "Tisch",
+    "wait_time": "Geschätzte Wartezeit",
+    "amount": "Betrag",
+    "waiter_notified": "Ihr Kellner wurde benachrichtigt. Genießen Sie die Wartezeit!",
+    "back_to_chat": "Zurück zum Chat",
+    "view_menu": "Speisekarte ansehen"
+  },
+  "loyalty": {
+    "title": "Treueprogramm",
+    "points": "Punkte",
+    "to_next": "Bis zum nächsten Level",
+    "multiplier": "Multiplikator",
+    "levels": "Stufen",
+    "recent": "Letzte Gutschriften",
+    "rewards": "Verfügbare Prämien",
+    "claim": "Einlösen"
+  },
+  "profile": {
+    "title": "Profil",
+    "guest": "Gast",
+    "guest_hint": "Melden Sie sich an, um Daten zu speichern",
+    "language": "Sprache",
+    "orders_history": "Bestellverlauf",
+    "favorites": "Favoriten",
+    "loyalty": "Treueprogramm",
+    "notifications": "Benachrichtigungen",
+    "about": "Über die App",
+    "logout": "Abmelden",
+    "version": "ILAI v1.0"
+  },
+  "common": {
+    "restaurant_name": "Liechtensteinhaus",
+    "slogan": "Semmering, seit 1977",
+    "ai_assistant": "KI-Assistent",
+    "live": "Live",
+    "today": "Heute",
+    "yesterday": "Gestern",
+    "currency": "€",
+    "back": "Zurück"
+  },
+  "tabs": {
+    "chat": "Chat",
+    "menu": "Speisekarte",
+    "cart": "Bestellung",
+    "profile": "Profil"
+  }
+}
