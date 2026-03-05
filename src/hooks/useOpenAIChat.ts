@@ -1,9 +1,7 @@
 import { useState, useCallback, useRef } from "react";
 import { dishes } from "@/data/menuData";
 
-const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY ?? "";
-const OPENAI_MODEL = import.meta.env.VITE_OPENAI_MODEL ?? "gpt-4o-mini";
-const OPENAI_URL = "https://api.openai.com/v1/chat/completions";
+const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 
 export interface ChatMessage {
   id: string;
@@ -12,57 +10,130 @@ export interface ChatMessage {
   time: string;
 }
 
-type OpenAIRole = "system" | "user" | "assistant";
-
-interface OpenAIMessage {
-  role: OpenAIRole;
+interface APIMessage {
+  role: "user" | "assistant";
   content: string;
 }
 
 const getTime = () =>
-  new Date().toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+  new Date().toLocaleTimeString("de-AT", { hour: "2-digit", minute: "2-digit" });
 
-const buildSystemPrompt = (): string => {
-  const menuText = dishes
+const buildMenuContext = (): string => {
+  return dishes
     .map(
       (d) =>
-        `- ${d.name} / ${d.nameRo} / ${d.nameEn} — €${d.price.toFixed(2)}, ${d.weight}, ${d.prepTime} мин. Состав: ${d.ingredients.join(", ")}${d.allergens?.length ? `. Аллергены: ${d.allergens.join(", ")}` : ""}`
+        `- ${d.name} — €${d.price.toFixed(2)}, ${d.weight}, ${d.prepTime} min. Zutaten: ${d.ingredients.join(", ")}${d.allergens?.length ? `. Allergene: ${d.allergens.join(", ")}` : ""}`
     )
     .join("\n");
-
-  return `Ты — приветливый AI-ассистент ресторана Liechtensteinhaus на горнолыжном курорте Земмеринг (Semmering), Австрия. Ресторан основан в 1977 году.
-
-СТИЛЬ ОБЩЕНИЯ:
-- Тёплый, дружелюбный, горный-уютный тон
-- Короткие, чёткие ответы (2–4 предложения, если не просят подробнее)
-- Используй язык собеседника: если пишут на русском — отвечай по-русски, на румынском — по-румынски, на немецком — по-немецки, на английском — по-английски
-- Можешь добавлять 1 эмодзи в конце ответа для уюта
-- Названия блюд можно упоминать на немецком (они так и называются в меню)
-
-ТВОИ ЗАДАЧИ:
-1. Рассказывать о меню, ингредиентах, аллергенах, времени приготовления
-2. Рекомендовать блюда под запрос гостя (вкус, диета, бюджет)
-3. Помогать с выбором, добавлением в заказ
-4. Отвечать на вопросы о ресторане (часы работы, бронирование — говори, что уточнишь у персонала)
-5. Принимать голосовые и текстовые сообщения одинаково
-6. При вопросе о хитах — рекомендуй Wiener Schnitzel, Germknödel, Kaiserschmarrn, Aperol Spritzer
-
-НЕ ДЕЛАЙ:
-- Не выходи за тему ресторана и еды
-- Не выдумывай позиции меню вне списка ниже
-
-АКТУАЛЬНОЕ МЕНЮ РЕСТОРАНА:
-${menuText}
-
-Валюта: EUR (евро, €). Ресторан расположен на горнолыжном курорте Земмеринг (Semmering), Австрия.`;
 };
 
-const SYSTEM_PROMPT = buildSystemPrompt();
+const MENU_CONTEXT = buildMenuContext();
+
+async function streamChat({
+  messages,
+  menuContext,
+  onDelta,
+  onDone,
+  onError,
+}: {
+  messages: APIMessage[];
+  menuContext: string;
+  onDelta: (text: string) => void;
+  onDone: () => void;
+  onError: (error: string) => void;
+}) {
+  try {
+    const resp = await fetch(CHAT_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+      },
+      body: JSON.stringify({ messages, menu_context: menuContext }),
+    });
+
+    if (!resp.ok) {
+      const errorData = await resp.json().catch(() => ({}));
+      if (resp.status === 429) {
+        onError(errorData.error || "Слишком много запросов. Подождите немного.");
+        return;
+      }
+      if (resp.status === 402) {
+        onError(errorData.error || "Необходимо пополнить кредиты.");
+        return;
+      }
+      onError(errorData.error || `Ошибка сервера (${resp.status})`);
+      return;
+    }
+
+    if (!resp.body) {
+      onError("Нет ответа от сервера");
+      return;
+    }
+
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let textBuffer = "";
+    let streamDone = false;
+
+    while (!streamDone) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      textBuffer += decoder.decode(value, { stream: true });
+
+      let newlineIndex: number;
+      while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
+        let line = textBuffer.slice(0, newlineIndex);
+        textBuffer = textBuffer.slice(newlineIndex + 1);
+
+        if (line.endsWith("\r")) line = line.slice(0, -1);
+        if (line.startsWith(":") || line.trim() === "") continue;
+        if (!line.startsWith("data: ")) continue;
+
+        const jsonStr = line.slice(6).trim();
+        if (jsonStr === "[DONE]") {
+          streamDone = true;
+          break;
+        }
+
+        try {
+          const parsed = JSON.parse(jsonStr);
+          const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+          if (content) onDelta(content);
+        } catch {
+          textBuffer = line + "\n" + textBuffer;
+          break;
+        }
+      }
+    }
+
+    // Final flush
+    if (textBuffer.trim()) {
+      for (let raw of textBuffer.split("\n")) {
+        if (!raw) continue;
+        if (raw.endsWith("\r")) raw = raw.slice(0, -1);
+        if (raw.startsWith(":") || raw.trim() === "") continue;
+        if (!raw.startsWith("data: ")) continue;
+        const jsonStr = raw.slice(6).trim();
+        if (jsonStr === "[DONE]") continue;
+        try {
+          const parsed = JSON.parse(jsonStr);
+          const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+          if (content) onDelta(content);
+        } catch { /* ignore */ }
+      }
+    }
+
+    onDone();
+  } catch (e) {
+    onError(e instanceof Error ? e.message : "Ошибка подключения");
+  }
+}
 
 export const useOpenAIChat = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isTyping, setIsTyping] = useState(false);
-  const historyRef = useRef<OpenAIMessage[]>([]);
+  const historyRef = useRef<APIMessage[]>([]);
 
   const addMessage = useCallback((text: string, isUser: boolean): ChatMessage => {
     const msg: ChatMessage = {
@@ -86,49 +157,40 @@ export const useOpenAIChat = () => {
 
       setIsTyping(true);
 
-      try {
-        const response = await fetch(OPENAI_URL, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${OPENAI_API_KEY}`,
-          },
-          body: JSON.stringify({
-            model: OPENAI_MODEL,
-            messages: [
-              { role: "system", content: SYSTEM_PROMPT },
-              ...historyRef.current,
-            ],
-            max_tokens: 400,
-            temperature: 0.7,
-          }),
-        });
+      let assistantSoFar = "";
+      const assistantId = Date.now().toString() + Math.random();
 
-        if (!response.ok) {
-          const err = await response.json().catch(() => ({}));
-          throw new Error(err?.error?.message ?? `HTTP ${response.status}`);
-        }
-
-        const data = await response.json();
-        const assistantText: string =
-          data.choices?.[0]?.message?.content?.trim() ?? "Извините, произошла ошибка.";
-
-        historyRef.current = [
-          ...historyRef.current,
-          { role: "assistant", content: assistantText },
-        ];
-
-        addMessage(assistantText, false);
-      } catch (error) {
-        const errorText =
-          error instanceof Error
-            ? `Ошибка: ${error.message}`
-            : "Не удалось получить ответ. Проверьте подключение.";
-        addMessage(errorText, false);
-        historyRef.current = historyRef.current.slice(0, -1);
-      } finally {
-        setIsTyping(false);
-      }
+      await streamChat({
+        messages: historyRef.current,
+        menuContext: MENU_CONTEXT,
+        onDelta: (chunk) => {
+          assistantSoFar += chunk;
+          setMessages((prev) => {
+            const existing = prev.find((m) => m.id === assistantId);
+            if (existing) {
+              return prev.map((m) =>
+                m.id === assistantId ? { ...m, text: assistantSoFar } : m
+              );
+            }
+            return [
+              ...prev,
+              { id: assistantId, text: assistantSoFar, isUser: false, time: getTime() },
+            ];
+          });
+        },
+        onDone: () => {
+          historyRef.current = [
+            ...historyRef.current,
+            { role: "assistant", content: assistantSoFar },
+          ];
+          setIsTyping(false);
+        },
+        onError: (error) => {
+          addMessage(`Ошибка: ${error}`, false);
+          historyRef.current = historyRef.current.slice(0, -1);
+          setIsTyping(false);
+        },
+      });
     },
     [addMessage]
   );
