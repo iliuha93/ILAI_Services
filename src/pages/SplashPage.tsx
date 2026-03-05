@@ -1,13 +1,27 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useLanguage } from "@/i18n/LanguageContext";
+
+const langLabels: Record<string, { flag: string; label: string }> = {
+  DE: { flag: "🇩🇪", label: "Deutsch" },
+  EN: { flag: "🇬🇧", label: "English" },
+  RU: { flag: "🇷🇺", label: "Русский" },
+  RO: { flag: "🇷🇴", label: "Română" },
+};
 
 const SplashPage = () => {
   const navigate = useNavigate();
+  const { lang, setLang } = useLanguage();
+  const [showLangPicker, setShowLangPicker] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => navigate("/login", { replace: true }), 2000);
+    const timer = setTimeout(() => setShowLangPicker(true), 1500);
     return () => clearTimeout(timer);
-  }, [navigate]);
+  }, []);
+
+  const handleContinue = () => {
+    navigate("/login", { replace: true });
+  };
 
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center bg-background overflow-hidden">
@@ -32,15 +46,43 @@ const SplashPage = () => {
           </p>
         </div>
 
-        <div className="flex gap-2 mt-4">
-          {[0, 1, 2].map((i) => (
-            <div
-              key={i}
-              className="w-2 h-2 rounded-full bg-primary animate-pulse"
-              style={{ animationDelay: `${i * 0.2}s` }}
-            />
-          ))}
-        </div>
+        {showLangPicker ? (
+          <div className="flex flex-col items-center gap-4 animate-fade-up">
+            <p className="text-muted-foreground text-xs">Sprache wählen / Choose language</p>
+            <div className="flex gap-2 flex-wrap justify-center">
+              {Object.entries(langLabels).map(([code, { flag, label }]) => (
+                <button
+                  key={code}
+                  onClick={() => setLang(code as any)}
+                  className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium transition-all border ${
+                    lang === code
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border text-muted-foreground hover:text-foreground hover:border-primary/30"
+                  }`}
+                >
+                  <span className="text-lg">{flag}</span>
+                  {label}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={handleContinue}
+              className="mt-4 px-8 py-3 rounded-2xl bg-primary text-primary-foreground font-medium text-sm transition-all hover:opacity-90 active:scale-[0.97]"
+            >
+              {lang === "DE" ? "Weiter" : lang === "RU" ? "Далее" : lang === "RO" ? "Continuă" : "Continue"}
+            </button>
+          </div>
+        ) : (
+          <div className="flex gap-2 mt-4">
+            {[0, 1, 2].map((i) => (
+              <div
+                key={i}
+                className="w-2 h-2 rounded-full bg-primary animate-pulse"
+                style={{ animationDelay: `${i * 0.2}s` }}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
