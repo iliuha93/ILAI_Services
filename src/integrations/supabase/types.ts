@@ -14,7 +14,93 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      audio_messages: {
+        Row: {
+          audio_url: string | null
+          created_at: string
+          duration_ms: number | null
+          id: string
+          session_id: string
+          transcript: string | null
+          user_id: string | null
+        }
+        Insert: {
+          audio_url?: string | null
+          created_at?: string
+          duration_ms?: number | null
+          id?: string
+          session_id: string
+          transcript?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          audio_url?: string | null
+          created_at?: string
+          duration_ms?: number | null
+          id?: string
+          session_id?: string
+          transcript?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          role: string
+          session_id: string
+          user_id: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          role: string
+          session_id?: string
+          user_id?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          role?: string
+          session_id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      realtime_sessions: {
+        Row: {
+          ended_at: string | null
+          id: string
+          metadata: Json | null
+          started_at: string
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          ended_at?: string | null
+          id?: string
+          metadata?: Json | null
+          started_at?: string
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          ended_at?: string | null
+          id?: string
+          metadata?: Json | null
+          started_at?: string
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
