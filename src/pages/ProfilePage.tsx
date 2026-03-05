@@ -1,14 +1,23 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Globe, FileText, Heart, Star, Bell, Info, ChevronRight, LogOut } from "lucide-react";
+import { Globe, FileText, Heart, Star, Bell, Info, ChevronRight, LogOut, Check } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
 import BottomTabBar from "@/components/BottomTabBar";
 
+const langOptions = [
+  { code: "DE", flag: "🇩🇪", label: "Deutsch" },
+  { code: "EN", flag: "🇬🇧", label: "English" },
+  { code: "RU", flag: "🇷🇺", label: "Русский" },
+  { code: "RO", flag: "🇷🇴", label: "Română" },
+] as const;
+
 const ProfilePage = () => {
   const navigate = useNavigate();
-  const { t, lang } = useLanguage();
+  const { t, lang, setLang } = useLanguage();
+  const [showLangPicker, setShowLangPicker] = useState(false);
 
   const menuItems = [
-    { icon: Globe, label: t.profile.language, value: lang, onClick: () => {} },
+    { icon: Globe, label: t.profile.language, value: langOptions.find(l => l.code === lang)?.flag + " " + lang, onClick: () => setShowLangPicker(!showLangPicker) },
     { icon: FileText, label: t.profile.orders_history, onClick: () => {} },
     { icon: Heart, label: t.profile.favorites, onClick: () => {} },
     { icon: Star, label: t.profile.loyalty, value: "Gold", onClick: () => navigate("/loyalty") },
@@ -37,18 +46,39 @@ const ProfilePage = () => {
         {/* Settings list */}
         <div className="glass-card rounded-2xl overflow-hidden">
           {menuItems.map(({ icon: Icon, label, value, onClick }, i) => (
-            <button
-              key={label}
-              onClick={onClick}
-              className={`w-full flex items-center gap-3 px-4 py-4 text-left transition-colors hover:bg-secondary/20 ${
-                i < menuItems.length - 1 ? "border-b border-border/30" : ""
-              }`}
-            >
-              <Icon className="w-5 h-5 text-muted-foreground shrink-0" />
-              <span className="flex-1 text-sm text-foreground">{label}</span>
-              {value && <span className="text-xs text-muted-foreground mr-1">{value}</span>}
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-            </button>
+            <div key={label}>
+              <button
+                onClick={onClick}
+                className={`w-full flex items-center gap-3 px-4 py-4 text-left transition-colors hover:bg-secondary/20 ${
+                  i < menuItems.length - 1 && !(i === 0 && showLangPicker) ? "border-b border-border/30" : ""
+                }`}
+              >
+                <Icon className="w-5 h-5 text-muted-foreground shrink-0" />
+                <span className="flex-1 text-sm text-foreground">{label}</span>
+                {value && <span className="text-xs text-muted-foreground mr-1">{value}</span>}
+                <ChevronRight className={`w-4 h-4 text-muted-foreground transition-transform ${i === 0 && showLangPicker ? "rotate-90" : ""}`} />
+              </button>
+
+              {/* Language picker dropdown */}
+              {i === 0 && showLangPicker && (
+                <div className="border-b border-border/30 bg-secondary/10">
+                  {langOptions.map((opt) => (
+                    <button
+                      key={opt.code}
+                      onClick={() => {
+                        setLang(opt.code as any);
+                        setShowLangPicker(false);
+                      }}
+                      className="w-full flex items-center gap-3 px-6 py-3 text-left transition-colors hover:bg-secondary/20"
+                    >
+                      <span className="text-lg">{opt.flag}</span>
+                      <span className="flex-1 text-sm text-foreground">{opt.label}</span>
+                      {lang === opt.code && <Check className="w-4 h-4 text-primary" />}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           ))}
         </div>
 
